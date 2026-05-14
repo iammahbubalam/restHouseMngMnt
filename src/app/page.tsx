@@ -7,24 +7,38 @@ import DateStrip from "@/components/DateStrip";
 import RoomCard from "@/components/RoomCard";
 import Navbar from "@/components/Navbar";
 import BuildingCard from "@/components/BuildingCard";
+import BookingModal from "@/components/BookingModal";
 import { format } from "date-fns";
 import { Loader2, Search, Plus, Filter } from "lucide-react";
 
 export default function Dashboard() {
   const { data: session, status } = useSession();
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [selectedBuildingId, setSelectedBuildingId] = useState<string>('villa-a');
+  const [selectedBuildingId, setSelectedBuildingId] = useState<string | null>(null);
   const [buildingsData, setBuildingsData] = useState<Record<string, any>>({});
   const [loading, setLoading] = useState(true);
 
-  const buildings = [
-    { id: 'villa-a', code: 'A', name: 'Sunset Villa', location: 'Building A', rooms: 12, image: '/images/sunset_villa.png' },
-    { id: 'villa-b', code: 'B', name: 'Ocean View', location: 'Building B', rooms: 15, image: '/images/ocean_view.png' },
-  ];
+  // MODAL STATES
+  const [bookingModal, setBookingModal] = useState<{ isOpen: boolean; room: any | null }>({ isOpen: false, room: null });
 
-  const currentBuildingCode = useMemo(() => {
-    return buildings.find(b => b.id === selectedBuildingId)?.code || 'A';
-  }, [selectedBuildingId]);
+  // DERIVE BUILDINGS LIST FROM API DATA
+  const buildings = useMemo(() => {
+    return Object.values(buildingsData).map(b => ({
+      id: b.code,
+      code: b.code,
+      name: b.name,
+      location: 'Main Campus',
+      rooms: b.rooms.length,
+      image: b.code === 'vip_rest_house' ? '/images/sunset_villa.png' : '/images/ocean_view.png'
+    }));
+  }, [buildingsData]);
+
+  // AUTO-SELECT FIRST BUILDING IF NONE SELECTED
+  useEffect(() => {
+    if (buildings.length > 0 && !selectedBuildingId) {
+      setSelectedBuildingId(buildings[0].id);
+    }
+  }, [buildings, selectedBuildingId]);
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -39,7 +53,11 @@ export default function Dashboard() {
       const dateStr = format(selectedDate, 'yyyy-MM-dd');
       const response = await fetch(`/api/rooms?date=${dateStr}`);
       const data = await response.json();
-      setBuildingsData(data);
+      if (response.ok && typeof data === 'object' && !data.error) {
+        setBuildingsData(data);
+      } else {
+        setBuildingsData({});
+      }
     } catch (error) {
       console.error("Failed to fetch rooms:", error);
     } finally {
@@ -51,10 +69,56 @@ export default function Dashboard() {
     fetchData();
   }, [fetchData]);
 
+  const handleBook = async (comment: string) => {
+    if (!bookingModal.room) return;
+    
+    try {
+      const response = await fetch('/api/bookings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          roomId: bookingModal.room.id,
+          bookingDate: format(selectedDate, 'yyyy-MM-dd'),
+          comment
+        })
+      });
+      
+      if (response.ok) {
+        setBookingModal({ isOpen: false, room: null });
+        fetchData();
+      } else {
+        const err = await response.json();
+        alert(err.error || 'Failed to book');
+      }
+    } catch (e) {
+      alert('Connection error');
+    }
+  };
+
+  const handleCancel = async (room: any) => {
+    if (!confirm(`Cancel booking for Room ${room.roomNumber}?`)) return; // Keep confirm for now or build another modal
+    
+    try {
+      const response = await fetch(`/api/bookings/${room.booking.id}`, {
+        method: 'DELETE'
+      });
+      
+      if (response.ok) {
+        fetchData();
+      } else {
+        const err = await response.json();
+        alert(err.error || 'Failed to cancel');
+      }
+    } catch (e) {
+      alert('Connection error');
+    }
+  };
+
   // FILTER ROOMS BY SELECTED BUILDING
   const filteredRooms: any[] = useMemo(() => {
-    return buildingsData[currentBuildingCode]?.rooms || [];
-  }, [buildingsData, currentBuildingCode]);
+    if (!selectedBuildingId) return [];
+    return buildingsData[selectedBuildingId]?.rooms || [];
+  }, [buildingsData, selectedBuildingId]);
 
   if (status === "loading") {
     return (
@@ -88,12 +152,12 @@ export default function Dashboard() {
       </header>
 
       <main className="max-w-screen-xl mx-auto px-6 py-8 space-y-10">
-        {/* BUILDINGS DUAL GRID */}
+        {/* BUILDINGS DUAL GRID (DYNAMIC) */}
         <section>
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-black text-text-primary tracking-tight">Buildings</h2>
             <span className="text-[10px] font-black text-accent-blue uppercase tracking-widest bg-accent-blue/10 px-2 py-1 rounded-md">
-              Select One
+              {buildings.length} Found
             </span>
           </div>
           <div className="grid grid-cols-2 gap-4">
@@ -142,18 +206,25 @@ export default function Dashboard() {
                   key={room.id}
                   room={room}
                   currentUserId={session.user?.id || ''}
-                  onBook={() => {}}
-                  onCancel={() => {}}
+                  onBook={() => setBookingModal({ isOpen: true, room })}
+                  onCancel={() => handleCancel(room)}
                 />
               ))}
             </div>
           ) : (
             <div className="text-center py-20 bg-bg-primary/30 rounded-[2rem] border border-dashed border-border-subtle">
-              <p className="text-text-secondary font-black uppercase tracking-widest text-[10px]">No data for this building</p>
+              <p className="text-text-secondary font-black uppercase tracking-widest text-[10px]">Select a building to view rooms</p>
             </div>
           )}
         </section>
       </main>
+
+      <BookingModal 
+        isOpen={bookingModal.isOpen}
+        roomNumber={bookingModal.room?.roomNumber || ''}
+        onClose={() => setBookingModal({ isOpen: false, room: null })}
+        onConfirm={handleBook}
+      />
 
       <Navbar />
     </div>

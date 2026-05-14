@@ -84,8 +84,8 @@ export default function DateStrip({ selectedDate, onSelectDate }: DateStripProps
               </div>
               
               <div className="grid grid-cols-7 gap-1 text-center">
-                {['S','M','T','W','T','F','S'].map(d => (
-                  <div key={d} className="text-[10px] font-black text-text-secondary py-2">{d}</div>
+                {['S','M','T','W','T','F','S'].map((d, i) => (
+                  <div key={i} className="text-[10px] font-black text-text-secondary py-2">{d}</div>
                 ))}
                 {calendarDays.map((date, i) => {
                   const isCurrentMonth = date.getMonth() === viewDate.getMonth();

@@ -1,85 +1,83 @@
 'use client';
 
-import { useState } from 'react';
-import { format } from 'date-fns';
-import { X, Calendar as CalendarIcon, User } from 'lucide-react';
+import { X, Send, User } from 'lucide-react';
+import { useState, useEffect } from 'react';
 
 interface BookingModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: (comment: string) => Promise<void>;
+  onConfirm: (comment: string) => void;
   roomNumber: string;
-  date: Date;
-  isSubmitting: boolean;
 }
 
-export default function BookingModal({ isOpen, onClose, onConfirm, roomNumber, date, isSubmitting }: BookingModalProps) {
+export default function BookingModal({ isOpen, onClose, onConfirm, roomNumber }: BookingModalProps) {
   const [comment, setComment] = useState('');
+
+  // Clear comment when modal opens/closes
+  useEffect(() => {
+    if (!isOpen) setComment('');
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-bg-primary/80 backdrop-blur-sm">
-      <div className="glass-card w-full max-w-md rounded-2xl overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-200">
-        
-        {/* Header */}
-        <div className="flex justify-between items-center p-5 border-b border-border-subtle bg-bg-card/50">
-          <h2 className="text-xl font-bold text-text-primary">Book Room {roomNumber}</h2>
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+      {/* Backdrop */}
+      <div 
+        className="absolute inset-0 bg-black/60 backdrop-blur-md animate-in fade-in duration-300"
+        onClick={onClose}
+      ></div>
+
+      {/* Modal Card */}
+      <div className="relative bg-bg-card w-full max-w-sm rounded-[2.5rem] overflow-hidden shadow-2xl border border-white/10 animate-in zoom-in duration-300">
+        <div className="p-6 bg-accent-blue text-white flex justify-between items-center">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-white/20 rounded-xl">
+              <User size={20} />
+            </div>
+            <div>
+              <h3 className="text-lg font-black tracking-tight leading-none">Book Room {roomNumber}</h3>
+              <p className="text-[10px] font-bold uppercase tracking-widest opacity-70 mt-1">Guest Entry</p>
+            </div>
+          </div>
           <button 
             onClick={onClose}
-            className="p-2 rounded-full text-text-secondary hover:text-text-primary hover:bg-bg-glass transition-colors"
+            className="p-2 hover:bg-white/20 rounded-full transition-colors"
           >
             <X size={20} />
           </button>
         </div>
 
-        {/* Body */}
         <div className="p-6 space-y-6">
-          
-          <div className="flex items-center gap-4 p-4 rounded-xl bg-bg-glass/50 border border-border-subtle/50">
-            <div className="w-12 h-12 rounded-full bg-accent-green/20 flex items-center justify-center text-accent-green">
-              <CalendarIcon size={24} />
-            </div>
-            <div>
-              <p className="text-xs text-text-secondary uppercase tracking-wider">Date</p>
-              <p className="text-lg font-medium text-text-primary">{format(date, 'EEEE, MMMM d, yyyy')}</p>
-            </div>
-          </div>
-
           <div className="space-y-2">
-            <label className="text-sm font-medium text-text-secondary flex items-center gap-2">
-              <User size={16} /> Guest Details & Comments
+            <label className="text-[10px] font-black text-text-secondary uppercase tracking-[0.2em] ml-1">
+              Guest Details / Remarks
             </label>
             <textarea
+              autoFocus
               value={comment}
               onChange={(e) => setComment(e.target.value)}
-              placeholder="E.g., John Doe - Needs extra pillows"
-              className="w-full min-h-[120px] p-4 rounded-xl bg-bg-primary border border-border-subtle text-text-primary placeholder:text-text-secondary/50 focus:outline-none focus:ring-2 focus:ring-accent-green/50 transition-all resize-none"
+              placeholder="Enter guest name or special requests..."
+              className="w-full h-32 bg-bg-secondary border border-border-subtle rounded-2xl p-4 text-text-primary text-sm focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue transition-all resize-none placeholder:text-text-secondary/40 font-medium"
             />
           </div>
 
+          <div className="flex gap-3">
+            <button 
+              onClick={onClose}
+              className="flex-1 py-4 rounded-2xl bg-bg-secondary text-text-secondary font-black text-xs uppercase tracking-widest hover:bg-border-subtle transition-all"
+            >
+              Cancel
+            </button>
+            <button 
+              onClick={() => onConfirm(comment)}
+              className="flex-[2] py-4 rounded-2xl bg-text-primary text-bg-primary font-black text-xs uppercase tracking-widest shadow-xl shadow-text-primary/20 flex items-center justify-center gap-2 hover:opacity-90 active:scale-[0.98] transition-all"
+            >
+              Confirm Booking
+              <Send size={14} />
+            </button>
+          </div>
         </div>
-
-        {/* Footer */}
-        <div className="p-5 border-t border-border-subtle flex gap-3 bg-bg-card/50">
-          <button 
-            onClick={onClose}
-            disabled={isSubmitting}
-            className="flex-1 py-3 rounded-xl font-medium text-text-secondary hover:text-text-primary hover:bg-bg-glass transition-colors disabled:opacity-50"
-          >
-            Cancel
-          </button>
-          <button 
-            onClick={() => onConfirm(comment)}
-            disabled={isSubmitting}
-            className="flex-1 py-3 rounded-xl font-bold bg-accent-green text-bg-primary hover:bg-accent-green/90 transition-colors disabled:opacity-50 shadow-[0_4px_14px_0_rgba(52,211,153,0.39)] flex items-center justify-center gap-2"
-          >
-            {isSubmitting ? (
-              <span className="w-5 h-5 border-2 border-bg-primary border-t-transparent rounded-full animate-spin"></span>
-            ) : 'Confirm Booking'}
-          </button>
-        </div>
-
       </div>
     </div>
   );

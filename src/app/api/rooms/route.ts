@@ -16,55 +16,54 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Date is required' }, { status: 400 });
     }
 
-    // Fetch all rooms and left join with bookings for the specific date
-    // This allows us to see both available and booked rooms in one query
-    const rooms = await sql`
+    // 1. Fetch all buildings
+    const buildings = await sql`SELECT * FROM buildings ORDER BY id`;
+    
+    // 2. Fetch all rooms with their bookings for the specific date
+    const roomRows = await sql`
       SELECT
         r.id AS room_id,
         r.room_number,
-        bg.code AS building_code,
-        bg.name AS building_name,
+        r.building_id,
         b.id AS booking_id,
         b.comment,
         b.booking_date,
         u.name AS booked_by_name,
-        u.email AS booked_by_email,
         u.id AS booked_by_id
       FROM rooms r
-      JOIN buildings bg ON r.building_id = bg.id
       LEFT JOIN bookings b
         ON b.room_id = r.id
         AND b.booking_date = ${date}
       LEFT JOIN users u ON u.id = b.booked_by
-      ORDER BY bg.id, r.room_number
+      ORDER BY r.room_number
     `;
 
-    // Group by building for easier frontend rendering
-    const groupedByBuilding = rooms.reduce((acc, row) => {
-      if (!acc[row.building_code]) {
-        acc[row.building_code] = {
-          name: row.building_name,
-          rooms: []
-        };
-      }
-      
-      acc[row.building_code].rooms.push({
-        id: row.room_id,
-        roomNumber: row.room_number,
-        isBooked: !!row.booking_id,
-        booking: row.booking_id ? {
-          id: row.booking_id,
-          date: row.booking_date,
-          comment: row.comment,
-          bookedById: row.booked_by_id,
-          bookedByName: row.booked_by_name,
-        } : null
-      });
-      
-      return acc;
-    }, {} as Record<string, any>);
+    // 3. Construct the response object
+    const result: Record<string, any> = {};
+    
+    buildings.forEach(b => {
+      result[b.code] = {
+        id: b.id,
+        name: b.name,
+        code: b.code,
+        rooms: roomRows
+          .filter(r => r.building_id === b.id)
+          .map(r => ({
+            id: r.room_id,
+            roomNumber: r.room_number,
+            isBooked: !!r.booking_id,
+            booking: r.booking_id ? {
+              id: r.booking_id,
+              date: r.booking_date,
+              comment: r.comment,
+              bookedById: r.booked_by_id,
+              bookedByName: r.booked_by_name,
+            } : null
+          }))
+      };
+    });
 
-    return NextResponse.json(groupedByBuilding);
+    return NextResponse.json(result);
   } catch (error) {
     console.error('Error fetching rooms:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
