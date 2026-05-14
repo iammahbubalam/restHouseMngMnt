@@ -1,182 +1,161 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { signOut, useSession } from 'next-auth/react';
-import DateStrip from '@/components/DateStrip';
-import RoomCard from '@/components/RoomCard';
-import BookingModal from '@/components/BookingModal';
-import Navbar from '@/components/Navbar';
-import { format } from 'date-fns';
-import { LogOut } from 'lucide-react';
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState, useCallback, useMemo } from "react";
+import DateStrip from "@/components/DateStrip";
+import RoomCard from "@/components/RoomCard";
+import Navbar from "@/components/Navbar";
+import BuildingCard from "@/components/BuildingCard";
+import { format } from "date-fns";
+import { Loader2, Search, Plus, Filter } from "lucide-react";
 
 export default function Dashboard() {
-  const { data: session } = useSession();
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const { data: session, status } = useSession();
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [selectedBuildingId, setSelectedBuildingId] = useState<string>('villa-a');
   const [buildingsData, setBuildingsData] = useState<Record<string, any>>({});
   const [loading, setLoading] = useState(true);
-  
-  // Modal state
-  const [modalOpen, setModalOpen] = useState(false);
-  const [selectedRoomId, setSelectedRoomId] = useState<number | null>(null);
-  const [selectedRoomNumber, setSelectedRoomNumber] = useState<string>('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const fetchRooms = async (date: Date) => {
+  const buildings = [
+    { id: 'villa-a', code: 'A', name: 'Sunset Villa', location: 'Building A', rooms: 12, image: '/images/sunset_villa.png' },
+    { id: 'villa-b', code: 'B', name: 'Ocean View', location: 'Building B', rooms: 15, image: '/images/ocean_view.png' },
+  ];
+
+  const currentBuildingCode = useMemo(() => {
+    return buildings.find(b => b.id === selectedBuildingId)?.code || 'A';
+  }, [selectedBuildingId]);
+
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      window.location.href = "/login";
+    }
+  }, [status]);
+
+  const fetchData = useCallback(async () => {
+    if (status !== "authenticated") return;
     setLoading(true);
     try {
-      const dateString = format(date, 'yyyy-MM-dd');
-      const res = await fetch(`/api/rooms?date=${dateString}`);
-      if (res.ok) {
-        const data = await res.json();
-        setBuildingsData(data);
-      }
+      const dateStr = format(selectedDate, 'yyyy-MM-dd');
+      const response = await fetch(`/api/rooms?date=${dateStr}`);
+      const data = await response.json();
+      setBuildingsData(data);
     } catch (error) {
-      console.error('Error fetching rooms:', error);
+      console.error("Failed to fetch rooms:", error);
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedDate, status]);
 
   useEffect(() => {
-    if (session) {
-      fetchRooms(selectedDate);
-    }
-  }, [selectedDate, session]);
+    fetchData();
+  }, [fetchData]);
 
-  const handleBookClick = (roomId: number, roomNumber: string) => {
-    setSelectedRoomId(roomId);
-    setSelectedRoomNumber(roomNumber);
-    setModalOpen(true);
-  };
+  // FILTER ROOMS BY SELECTED BUILDING
+  const filteredRooms: any[] = useMemo(() => {
+    return buildingsData[currentBuildingCode]?.rooms || [];
+  }, [buildingsData, currentBuildingCode]);
 
-  const handleConfirmBooking = async (comment: string) => {
-    if (!selectedRoomId) return;
-    
-    setIsSubmitting(true);
-    try {
-      const dateString = format(selectedDate, 'yyyy-MM-dd');
-      const res = await fetch('/api/bookings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          roomId: selectedRoomId,
-          bookingDate: dateString,
-          comment,
-        }),
-      });
-
-      if (res.ok) {
-        setModalOpen(false);
-        fetchRooms(selectedDate); // Refresh data
-      } else {
-        const err = await res.json();
-        alert(err.error || 'Failed to book room');
-      }
-    } catch (error) {
-      console.error(error);
-      alert('An unexpected error occurred');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleCancelBooking = async (bookingId: string) => {
-    if (!confirm('Are you sure you want to cancel this booking?')) return;
-    
-    try {
-      const res = await fetch(`/api/bookings/${bookingId}`, {
-        method: 'DELETE',
-      });
-      
-      if (res.ok) {
-        fetchRooms(selectedDate);
-      } else {
-        const err = await res.json();
-        alert(err.error || 'Failed to cancel booking');
-      }
-    } catch (error) {
-      console.error(error);
-      alert('An unexpected error occurred');
-    }
-  };
-
-  if (!session) {
-    return <div className="min-h-screen flex items-center justify-center bg-bg-primary text-text-primary">Loading...</div>;
+  if (status === "loading") {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-bg-primary">
+        <Loader2 className="w-10 h-10 text-accent-blue animate-spin mb-4" />
+        <p className="text-text-secondary font-black animate-pulse uppercase tracking-widest text-[10px]">Initializing...</p>
+      </div>
+    );
   }
 
-  const currentUserId = session.user?.id as string;
+  if (!session) return null;
 
   return (
-    <div className="min-h-screen bg-bg-primary pb-24 font-sans">
-      
-      {/* Top Header */}
-      <header className="px-6 py-6 pt-12 flex justify-between items-center bg-bg-card border-b border-border-subtle sticky top-0 z-20">
-        <div>
-          <p className="text-text-secondary text-sm font-medium tracking-wide">Welcome back,</p>
-          <h1 className="text-2xl font-bold text-text-primary">{session.user?.name}</h1>
+    <div className="min-h-screen bg-bg-secondary pb-24">
+      <header className="bg-bg-primary border-b border-border-subtle sticky top-0 z-20">
+        <div className="px-6 pt-8 pb-4 max-w-screen-xl mx-auto flex justify-between items-center">
+          <div>
+            <h1 className="text-2xl font-black text-text-primary tracking-tight">Rest House</h1>
+            <p className="text-[10px] text-text-secondary font-black uppercase tracking-[0.2em] opacity-60">Management System</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <button className="p-2.5 rounded-full bg-bg-secondary border border-border-subtle text-text-primary">
+              <Search size={20} />
+            </button>
+            <div className="h-10 w-10 rounded-full border-2 border-accent-blue p-0.5">
+              <img src={session.user?.image || ''} alt="User" className="h-full w-full rounded-full object-cover" />
+            </div>
+          </div>
         </div>
-        
-        {session.user?.image ? (
-          <img 
-            src={session.user.image} 
-            alt="Profile" 
-            className="w-12 h-12 rounded-full border-2 border-border-subtle cursor-pointer hover:border-accent-red transition-colors"
-            onClick={() => signOut()}
-            title="Sign out"
-          />
-        ) : (
-          <button onClick={() => signOut()} className="p-3 bg-bg-glass rounded-full text-accent-red hover:bg-accent-red/10 transition-colors">
-            <LogOut size={20} />
-          </button>
-        )}
+        <DateStrip selectedDate={selectedDate} onSelectDate={setSelectedDate} />
       </header>
 
-      {/* Date Strip Component */}
-      <DateStrip 
-        selectedDate={selectedDate} 
-        onSelectDate={setSelectedDate} 
-      />
-
-      {/* Main Content */}
-      <main className="p-6 space-y-12">
-        {loading ? (
-          <div className="flex justify-center items-center py-20">
-            <div className="w-10 h-10 border-4 border-accent-green/20 border-t-accent-green rounded-full animate-spin"></div>
+      <main className="max-w-screen-xl mx-auto px-6 py-8 space-y-10">
+        {/* BUILDINGS DUAL GRID */}
+        <section>
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-black text-text-primary tracking-tight">Buildings</h2>
+            <span className="text-[10px] font-black text-accent-blue uppercase tracking-widest bg-accent-blue/10 px-2 py-1 rounded-md">
+              Select One
+            </span>
           </div>
-        ) : (
-          Object.entries(buildingsData).map(([code, building]: [string, any]) => (
-            <div key={code} className="space-y-6">
-              <div className="flex items-center gap-4">
-                <h2 className="text-2xl font-bold text-text-primary">{building.name}</h2>
-                <div className="h-[1px] flex-1 bg-border-subtle"></div>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {building.rooms.map((room: any) => (
-                  <RoomCard 
-                    key={room.id}
-                    room={room}
-                    currentUserId={currentUserId}
-                    onBook={() => handleBookClick(room.id, room.roomNumber)}
-                    onCancel={() => handleCancelBooking(room.booking?.id)}
-                  />
-                ))}
-              </div>
+          <div className="grid grid-cols-2 gap-4">
+            {buildings.map((b) => (
+              <BuildingCard 
+                key={b.id}
+                name={b.name}
+                location={b.location}
+                roomCount={b.rooms}
+                imageUrl={b.image}
+                isSelected={selectedBuildingId === b.id}
+                onClick={() => setSelectedBuildingId(b.id)}
+              />
+            ))}
+          </div>
+        </section>
+
+        {/* ROOMS DUAL GRID */}
+        <section>
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <h2 className="text-xl font-black text-text-primary tracking-tight">Rooms</h2>
+              <span className="px-2 py-0.5 rounded-md bg-text-primary/5 text-text-primary text-[10px] font-black uppercase border border-border-subtle">
+                {filteredRooms.length} Units
+              </span>
             </div>
-          ))
-        )}
+            <div className="flex items-center gap-2">
+              <button className="p-2.5 rounded-xl bg-bg-primary border border-border-subtle text-text-secondary">
+                <Filter size={18} />
+              </button>
+              <button className="p-2.5 bg-text-primary text-bg-primary rounded-xl shadow-lg shadow-text-primary/10">
+                <Plus size={18} />
+              </button>
+            </div>
+          </div>
+
+          {loading ? (
+            <div className="flex flex-col items-center justify-center py-20 bg-bg-primary/30 rounded-[2rem] border border-dashed border-border-subtle">
+              <Loader2 className="w-8 h-8 text-accent-blue animate-spin mb-3" />
+              <p className="text-text-secondary text-[10px] font-black uppercase tracking-widest">Updating...</p>
+            </div>
+          ) : filteredRooms.length > 0 ? (
+            <div className="grid grid-cols-2 gap-4">
+              {filteredRooms.map((room) => (
+                <RoomCard
+                  key={room.id}
+                  room={room}
+                  currentUserId={session.user?.id || ''}
+                  onBook={() => {}}
+                  onCancel={() => {}}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-20 bg-bg-primary/30 rounded-[2rem] border border-dashed border-border-subtle">
+              <p className="text-text-secondary font-black uppercase tracking-widest text-[10px]">No data for this building</p>
+            </div>
+          )}
+        </section>
       </main>
 
       <Navbar />
-
-      <BookingModal 
-        isOpen={modalOpen}
-        onClose={() => setModalOpen(false)}
-        onConfirm={handleConfirmBooking}
-        roomNumber={selectedRoomNumber}
-        date={selectedDate}
-        isSubmitting={isSubmitting}
-      />
     </div>
   );
 }

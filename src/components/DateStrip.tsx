@@ -1,8 +1,8 @@
 'use client';
 
-import { format, addDays, subDays, isSameDay } from 'date-fns';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { useRef, useEffect } from 'react';
+import { format, addDays, isSameDay, startOfMonth, endOfMonth, eachDayOfInterval, startOfWeek, endOfWeek, addMonths, subMonths } from 'date-fns';
+import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, X } from 'lucide-react';
+import { useState } from 'react';
 
 interface DateStripProps {
   selectedDate: Date;
@@ -10,68 +10,105 @@ interface DateStripProps {
 }
 
 export default function DateStrip({ selectedDate, onSelectDate }: DateStripProps) {
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const [showCalendar, setShowCalendar] = useState(false);
+  const [viewDate, setViewDate] = useState(new Date());
   
-  // Generate a window of 14 days (7 before, 7 after)
+  // STRICT 7-day window starting from Today
   const today = new Date();
-  const dates = Array.from({ length: 15 }).map((_, i) => addDays(subDays(today, 7), i));
+  const next7Days = Array.from({ length: 7 }).map((_, i) => addDays(today, i));
 
-  // Center the selected date on load
-  useEffect(() => {
-    if (scrollRef.current) {
-      const selectedEl = scrollRef.current.querySelector('[data-selected="true"]');
-      if (selectedEl) {
-        selectedEl.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
-      }
-    }
-  }, [selectedDate]);
+  const calendarDays = eachDayOfInterval({
+    start: startOfWeek(startOfMonth(viewDate)),
+    end: endOfWeek(endOfMonth(viewDate))
+  });
 
   return (
-    <div className="flex items-center w-full py-4 bg-bg-primary border-b border-border-subtle sticky top-0 z-10">
-      <button 
-        onClick={() => onSelectDate(subDays(selectedDate, 1))}
-        className="p-2 text-text-secondary hover:text-text-primary transition-colors"
-      >
-        <ChevronLeft size={24} />
-      </button>
+    <div className="bg-bg-primary sticky top-0 z-30 border-b border-border-subtle px-6 py-4">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-xl font-black text-text-primary">
+          {format(selectedDate, 'MMMM yyyy')}
+        </h2>
+        <button 
+          onClick={() => setShowCalendar(true)}
+          className="p-2.5 rounded-xl bg-bg-secondary border border-border-subtle text-text-primary shadow-sm hover:scale-105 transition-transform"
+        >
+          <CalendarIcon size={20} />
+        </button>
+      </div>
       
-      <div 
-        ref={scrollRef}
-        className="flex-1 flex overflow-x-auto no-scrollbar gap-3 px-2 snap-x"
-      >
-        {dates.map((date, i) => {
+      {/* STRICT 7-DAY GRID (No Scrolling) */}
+      <div className="grid grid-cols-7 gap-2">
+        {next7Days.map((date, i) => {
           const isSelected = isSameDay(date, selectedDate);
           const isToday = isSameDay(date, today);
           
           return (
             <button
               key={i}
-              data-selected={isSelected}
               onClick={() => onSelectDate(date)}
               className={`
-                flex flex-col items-center justify-center min-w-[60px] h-[70px] rounded-xl snap-center transition-all duration-200
+                flex flex-col items-center justify-center py-3 rounded-2xl transition-all duration-200
                 ${isSelected 
-                  ? 'bg-accent-green text-bg-primary shadow-[0_0_15px_rgba(52,211,153,0.3)] font-bold' 
-                  : 'glass-card text-text-secondary hover:bg-bg-glass hover:text-text-primary'
+                  ? 'bg-accent-blue text-white font-bold shadow-lg shadow-accent-blue/30' 
+                  : 'bg-bg-secondary text-text-secondary border border-transparent'
                 }
               `}
             >
-              <span className="text-xs uppercase tracking-wider">{format(date, 'EEE')}</span>
-              <span className="text-xl">{format(date, 'd')}</span>
-              {isToday && !isSelected && (
-                <span className="w-1 h-1 rounded-full bg-accent-amber mt-1"></span>
-              )}
+              <span className={`text-[10px] font-black uppercase tracking-tighter mb-1 ${isSelected ? 'text-white/70' : 'text-text-secondary/50'}`}>
+                {format(date, 'EEE')}
+              </span>
+              <span className="text-base leading-none">{format(date, 'd')}</span>
             </button>
           );
         })}
       </div>
 
-      <button 
-        onClick={() => onSelectDate(addDays(selectedDate, 1))}
-        className="p-2 text-text-secondary hover:text-text-primary transition-colors"
-      >
-        <ChevronRight size={24} />
-      </button>
+      {/* FULL SCREEN CALENDAR OVERLAY */}
+      {showCalendar && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="bg-bg-card w-full max-w-sm rounded-[2.5rem] overflow-hidden shadow-2xl border border-white/10 animate-in zoom-in duration-300">
+            <div className="p-6 bg-accent-blue text-white flex justify-between items-center">
+              <div>
+                <h3 className="text-lg font-black">{format(viewDate, 'MMMM yyyy')}</h3>
+                <p className="text-xs opacity-70">Select any date</p>
+              </div>
+              <button onClick={() => setShowCalendar(false)} className="p-2 hover:bg-white/20 rounded-full">
+                <X size={20} />
+              </button>
+            </div>
+            
+            <div className="p-6">
+              <div className="flex justify-between mb-4">
+                <button onClick={() => setViewDate(subMonths(viewDate, 1))} className="p-1"><ChevronLeft /></button>
+                <button onClick={() => setViewDate(addMonths(viewDate, 1))} className="p-1"><ChevronRight /></button>
+              </div>
+              
+              <div className="grid grid-cols-7 gap-1 text-center">
+                {['S','M','T','W','T','F','S'].map(d => (
+                  <div key={d} className="text-[10px] font-black text-text-secondary py-2">{d}</div>
+                ))}
+                {calendarDays.map((date, i) => {
+                  const isCurrentMonth = date.getMonth() === viewDate.getMonth();
+                  const isSelected = isSameDay(date, selectedDate);
+                  return (
+                    <button
+                      key={i}
+                      onClick={() => { onSelectDate(date); setShowCalendar(false); }}
+                      className={`aspect-square flex items-center justify-center text-sm rounded-xl transition-all ${
+                        isSelected 
+                          ? 'bg-accent-blue text-white font-bold' 
+                          : isCurrentMonth ? 'text-text-primary hover:bg-bg-secondary' : 'text-text-secondary opacity-30'
+                      }`}
+                    >
+                      {format(date, 'd')}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
