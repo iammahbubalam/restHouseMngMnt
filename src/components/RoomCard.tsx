@@ -3,13 +3,21 @@
 import { useState } from 'react';
 import { User, Clock, FileText, ChevronRight } from 'lucide-react';
 
-interface RoomCardProps {
-  room: {
+interface Room {
+  id: number;
+  roomNumber: string;
+  isBooked: boolean;
+  booking?: {
     id: number;
-    roomNumber: string;
-    isBooked: boolean;
-    booking: any;
+    bookedById: string;
+    bookedByName: string;
+    bookingDate: string;
+    comment: string;
   };
+}
+
+interface RoomCardProps {
+  room: Room;
   currentUserId: string;
   onBook: () => void;
   onCancel: () => void;
@@ -20,47 +28,49 @@ export default function RoomCard({ room, currentUserId, onBook, onCancel }: Room
 
   return (
     <div 
-      className="premium-card p-4 group flex flex-col justify-between min-h-[140px]"
+      className={`native-card p-3 flex flex-col justify-between min-h-[100px] transition-all bg-bg-card/40 ${
+        !room.isBooked ? 'active:scale-[0.98] cursor-pointer' : ''
+      }`}
       onClick={room.isBooked ? undefined : onBook}
     >
       <div className="flex justify-between items-start">
         <div>
-          <span className="text-[8px] font-black uppercase tracking-widest text-text-secondary opacity-40">Room</span>
-          <h3 className="text-xl font-black text-text-primary tracking-tighter">{room.roomNumber}</h3>
+          <p className="text-[6px] font-black uppercase tracking-[0.2em] text-text-secondary opacity-30 mb-0.5">Unit</p>
+          <h3 className="text-lg font-black text-white tracking-tighter leading-none uppercase">{room.roomNumber}</h3>
         </div>
         
-        <div className={`status-badge text-[7px] py-0.5 px-2 ${
+        <div className={`status-pill !px-1.5 !py-0.5 !text-[5px] border ${
           room.isBooked 
-            ? (isBookedByMe ? 'bg-accent-blue/10 text-accent-blue' : 'bg-accent-red/10 text-accent-red') 
-            : 'bg-accent-green/10 text-accent-green'
+            ? (isBookedByMe ? 'bg-accent-blue/10 text-accent-blue border-accent-blue/20' : 'bg-accent-red/10 text-accent-red border-accent-red/20') 
+            : 'bg-accent-green/10 text-accent-green border-accent-green/20'
         }`}>
-          {room.isBooked ? (isBookedByMe ? 'MINE' : 'OCC') : 'AVAIL'}
+          {room.isBooked ? 'BOOKED' : 'AVAILABLE'}
         </div>
       </div>
 
-      <div className="mt-3">
+      <div className="mt-2">
         {room.isBooked ? (
           <div className="space-y-2">
-            <div className="flex items-center gap-1.5 text-[10px] text-text-secondary">
-              <User size={10} className="opacity-40" />
-              <span className="font-bold text-text-primary truncate">{room.booking?.bookedByName}</span>
+            <div className="flex items-center gap-1.5 opacity-40">
+              <User size={8} />
+              <span className="text-[7px] font-black uppercase tracking-widest text-text-secondary truncate">
+                {room.booking?.bookedByName}
+              </span>
             </div>
             
             {isBookedByMe && (
               <button 
                 onClick={(e) => { e.stopPropagation(); onCancel(); }}
-                className="w-full py-1.5 rounded-lg border border-accent-red/20 text-accent-red text-[8px] font-black uppercase tracking-widest hover:bg-accent-red hover:text-white transition-all"
+                className="w-full py-1.5 rounded-lg bg-accent-red/5 text-accent-red text-[6px] font-black uppercase tracking-widest active:scale-90 transition-transform border border-accent-red/10"
               >
                 Cancel
               </button>
             )}
           </div>
         ) : (
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1 text-[8px] text-accent-blue font-black uppercase tracking-widest group-hover:gap-1.5 transition-all">
-              Book Now
-              <ChevronRight size={12} />
-            </div>
+          <div className="flex items-center justify-between w-full group text-accent-blue opacity-70">
+            <span className="text-[7px] font-black uppercase tracking-widest">Book Unit</span>
+            <ChevronRight size={10} className="group-hover:translate-x-0.5 transition-transform" />
           </div>
         )}
       </div>

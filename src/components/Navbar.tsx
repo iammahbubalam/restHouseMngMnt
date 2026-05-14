@@ -1,45 +1,43 @@
 'use client';
 
-import { LayoutDashboard, BookOpen, Users, Settings, BarChart3 } from 'lucide-react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { useState } from 'react';
+import { Home, Calendar, Users, Settings, FileText } from 'lucide-react';
 
 export default function Navbar() {
-  const pathname = usePathname();
+  const [active, setActive] = useState('Home');
 
   const navItems = [
-    { label: 'Dashboard', icon: LayoutDashboard, href: '/' },
-    { label: 'Bookings', icon: BookOpen, href: '/bookings' },
-    { label: 'Guests', icon: Users, href: '/guests' },
-    { label: 'Reports', icon: BarChart3, href: '/reports' },
-    { label: 'Settings', icon: Settings, href: '/settings' },
+    { name: 'Home', icon: Home },
+    { name: 'Bookings', icon: Calendar },
+    { name: 'Guests', icon: Users },
+    { name: 'Reports', icon: FileText },
+    { name: 'Settings', icon: Settings },
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 w-full bg-bg-card border-t border-border-subtle pb-safe z-40 shadow-[0_-4px_6px_-1px_var(--color-shadow-subtle)]">
-      <div className="max-w-screen-xl mx-auto flex justify-around items-center h-16">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 glass-header px-6 pb-8 pt-4">
+      <div className="max-w-screen-xl mx-auto flex justify-between items-center">
         {navItems.map((item) => {
-          const isActive = pathname === item.href;
+          const IsActive = active === item.name;
           return (
-            <Link 
-              key={item.href}
-              href={item.href}
-              className={`flex flex-col items-center justify-center w-full h-full transition-all duration-200 ${
-                isActive ? 'text-accent-blue' : 'text-text-secondary hover:text-text-primary'
-              }`}
+            <button
+              key={item.name}
+              onClick={() => setActive(item.name)}
+              className="flex flex-col items-center gap-1 relative group"
             >
-              <item.icon size={20} className={isActive ? 'scale-110' : 'opacity-70'} />
-              <span className={`text-[10px] font-bold mt-1.5 ${isActive ? 'opacity-100' : 'opacity-60'}`}>
-                {item.label}
+              <div className={`
+                p-2 rounded-2xl transition-all duration-300
+                ${IsActive ? 'bg-white text-black scale-110 shadow-xl shadow-white/10' : 'text-text-secondary opacity-40'}
+              `}>
+                <item.icon size={22} strokeWidth={IsActive ? 2.5 : 2} />
+              </div>
+              <span className={`text-[8px] font-black uppercase tracking-widest transition-opacity duration-300 ${IsActive ? 'opacity-100 mt-1' : 'opacity-0'}`}>
+                {item.name}
               </span>
-              {isActive && (
-                <div className="absolute top-0 w-8 h-0.5 bg-accent-blue rounded-full" />
-              )}
-            </Link>
+            </button>
           );
         })}
       </div>
-      {/* iOS Home Indicator Spacer */}
       <div className="h-4 w-full md:hidden"></div>
     </nav>
   );

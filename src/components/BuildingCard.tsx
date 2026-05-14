@@ -15,40 +15,36 @@ export default function BuildingCard({ name, location, roomCount, imageUrl, isSe
   return (
     <button 
       onClick={onClick}
-      className={`relative w-full aspect-square rounded-[1.5rem] overflow-hidden group transition-all duration-500 ${
-        isSelected ? 'ring-2 ring-accent-blue ring-offset-2 ring-offset-bg-secondary' : ''
+      className={`relative w-full aspect-[16/10] rounded-xl overflow-hidden group active:scale-95 transition-all duration-300 border ${
+        isSelected ? 'border-white/40 shadow-[0_0_20px_rgba(255,255,255,0.1)]' : 'border-white/5'
       }`}
     >
-      {/* Background Image with Gradient Overlay */}
       <img 
         src={imageUrl} 
         alt={name}
         className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
       />
-      <div className={`absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent transition-opacity duration-300 ${
-        isSelected ? 'opacity-100' : 'opacity-70 group-hover:opacity-85'
+      <div className={`absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent transition-opacity duration-300 ${
+        isSelected ? 'opacity-100' : 'opacity-80'
       }`}></div>
 
-      {/* Content */}
-      <div className="absolute inset-0 p-4 flex flex-col justify-end text-left">
-        <h3 className="text-sm font-black text-white tracking-tight leading-tight mb-1">{name}</h3>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1 text-white/60 text-[8px] font-bold uppercase tracking-widest">
-            <MapPin size={8} />
-            {location}
+      <div className="absolute inset-0 p-3.5 flex flex-col justify-end text-left">
+        <div>
+          <p className="text-[6px] font-black uppercase tracking-[0.2em] text-white/40 mb-0.5">{location}</p>
+          <h3 className="text-[9px] font-black text-white tracking-tight uppercase leading-none">{name}</h3>
+        </div>
+        
+        <div className="mt-2 flex items-center justify-between">
+          <div className="bg-white/10 backdrop-blur-md px-1.5 py-0.5 rounded-md text-[6px] font-black text-white/60 uppercase tracking-widest border border-white/5">
+            {roomCount} Units
           </div>
-          <div className="bg-white/10 backdrop-blur-md px-2 py-0.5 rounded-full text-[8px] font-black text-white uppercase tracking-widest">
-            {roomCount} R
-          </div>
+          {isSelected && (
+            <div className="h-4 w-4 bg-white rounded-full flex items-center justify-center text-black">
+              <ChevronRight size={10} strokeWidth={3} />
+            </div>
+          )}
         </div>
       </div>
-
-      {/* Selected Indicator */}
-      {isSelected && (
-        <div className="absolute top-3 right-3 bg-accent-blue p-1.5 rounded-full text-white shadow-lg animate-in zoom-in duration-300">
-          <ChevronRight size={12} />
-        </div>
-      )}
     </button>
   );
 }

@@ -13,7 +13,6 @@ export default function DateStrip({ selectedDate, onSelectDate }: DateStripProps
   const [showCalendar, setShowCalendar] = useState(false);
   const [viewDate, setViewDate] = useState(new Date());
   
-  // STRICT 7-day window starting from Today
   const today = new Date();
   const next7Days = Array.from({ length: 7 }).map((_, i) => addDays(today, i));
 
@@ -23,69 +22,63 @@ export default function DateStrip({ selectedDate, onSelectDate }: DateStripProps
   });
 
   return (
-    <div className="bg-bg-primary sticky top-0 z-30 border-b border-border-subtle px-6 py-4">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-black text-text-primary">
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-black text-white tracking-tighter">
           {format(selectedDate, 'MMMM yyyy')}
         </h2>
         <button 
           onClick={() => setShowCalendar(true)}
-          className="p-2.5 rounded-xl bg-bg-secondary border border-border-subtle text-text-primary shadow-sm hover:scale-105 transition-transform"
+          className="h-12 w-12 flex items-center justify-center rounded-2xl bg-bg-card border border-white/5 text-text-secondary active:scale-90 transition-all"
         >
           <CalendarIcon size={20} />
         </button>
       </div>
       
-      {/* STRICT 7-DAY GRID (No Scrolling) */}
       <div className="grid grid-cols-7 gap-2">
         {next7Days.map((date, i) => {
           const isSelected = isSameDay(date, selectedDate);
-          const isToday = isSameDay(date, today);
-          
           return (
             <button
               key={i}
               onClick={() => onSelectDate(date)}
               className={`
-                flex flex-col items-center justify-center py-3 rounded-2xl transition-all duration-200
+                flex flex-col items-center justify-center py-4 rounded-[1.25rem] transition-all duration-300 active:scale-95
                 ${isSelected 
-                  ? 'bg-accent-blue text-white font-bold shadow-lg shadow-accent-blue/30' 
-                  : 'bg-bg-secondary text-text-secondary border border-transparent'
+                  ? 'bg-white text-black shadow-2xl shadow-white/20' 
+                  : 'bg-bg-card text-text-secondary border border-white/5'
                 }
               `}
             >
-              <span className={`text-[10px] font-black uppercase tracking-tighter mb-1 ${isSelected ? 'text-white/70' : 'text-text-secondary/50'}`}>
+              <span className={`text-[9px] font-black uppercase tracking-tighter mb-1 ${isSelected ? 'opacity-40' : 'opacity-30'}`}>
                 {format(date, 'EEE')}
               </span>
-              <span className="text-base leading-none">{format(date, 'd')}</span>
+              <span className="text-lg font-black tracking-tighter">{format(date, 'd')}</span>
             </button>
           );
         })}
       </div>
 
-      {/* FULL SCREEN CALENDAR OVERLAY */}
+      {/* MODAL CALENDAR (Native Style) */}
       {showCalendar && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-center justify-center p-4">
-          <div className="bg-bg-card w-full max-w-sm rounded-[2.5rem] overflow-hidden shadow-2xl border border-white/10 animate-in zoom-in duration-300">
-            <div className="p-6 bg-accent-blue text-white flex justify-between items-center">
-              <div>
-                <h3 className="text-lg font-black">{format(viewDate, 'MMMM yyyy')}</h3>
-                <p className="text-xs opacity-70">Select any date</p>
-              </div>
-              <button onClick={() => setShowCalendar(false)} className="p-2 hover:bg-white/20 rounded-full">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-xl z-[100] flex items-center justify-center p-6">
+          <div className="bg-bg-card w-full max-w-sm rounded-[2.5rem] overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/10 animate-in zoom-in duration-300">
+            <div className="p-8 pb-4 flex justify-between items-center">
+              <h3 className="text-xl font-black text-white">{format(viewDate, 'MMMM yyyy')}</h3>
+              <button onClick={() => setShowCalendar(false)} className="p-2 bg-bg-surface rounded-full text-text-secondary">
                 <X size={20} />
               </button>
             </div>
             
-            <div className="p-6">
-              <div className="flex justify-between mb-4">
-                <button onClick={() => setViewDate(subMonths(viewDate, 1))} className="p-1"><ChevronLeft /></button>
-                <button onClick={() => setViewDate(addMonths(viewDate, 1))} className="p-1"><ChevronRight /></button>
+            <div className="px-8 pb-8 space-y-6">
+              <div className="flex justify-between">
+                <button onClick={() => setViewDate(subMonths(viewDate, 1))} className="p-2 bg-bg-surface rounded-xl"><ChevronLeft size={20}/></button>
+                <button onClick={() => setViewDate(addMonths(viewDate, 1))} className="p-2 bg-bg-surface rounded-xl"><ChevronRight size={20}/></button>
               </div>
               
               <div className="grid grid-cols-7 gap-1 text-center">
                 {['S','M','T','W','T','F','S'].map((d, i) => (
-                  <div key={i} className="text-[10px] font-black text-text-secondary py-2">{d}</div>
+                  <div key={i} className="text-[10px] font-black text-text-tertiary py-2">{d}</div>
                 ))}
                 {calendarDays.map((date, i) => {
                   const isCurrentMonth = date.getMonth() === viewDate.getMonth();
@@ -94,10 +87,10 @@ export default function DateStrip({ selectedDate, onSelectDate }: DateStripProps
                     <button
                       key={i}
                       onClick={() => { onSelectDate(date); setShowCalendar(false); }}
-                      className={`aspect-square flex items-center justify-center text-sm rounded-xl transition-all ${
+                      className={`aspect-square flex items-center justify-center text-sm rounded-xl font-bold transition-all ${
                         isSelected 
-                          ? 'bg-accent-blue text-white font-bold' 
-                          : isCurrentMonth ? 'text-text-primary hover:bg-bg-secondary' : 'text-text-secondary opacity-30'
+                          ? 'bg-white text-black scale-110' 
+                          : isCurrentMonth ? 'text-text-primary hover:bg-bg-surface' : 'text-text-tertiary opacity-30'
                       }`}
                     >
                       {format(date, 'd')}

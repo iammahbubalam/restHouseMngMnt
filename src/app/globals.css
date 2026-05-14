@@ -1,83 +1,81 @@
 @import "tailwindcss";
 
 @theme {
-  /* System Tokens - Light Mode (Default) */
-  --color-bg-primary: #ffffff;
-  --color-bg-secondary: #f8fafc;
-  --color-bg-card: #ffffff;
-  --color-text-primary: #0f172a;
-  --color-text-secondary: #64748b;
-  --color-accent-blue: #2563eb;
-  --color-accent-green: #10b981;
-  --color-accent-red: #ef4444;
-  --color-border-subtle: #e2e8f0;
-  --color-shadow-subtle: rgba(0, 0, 0, 0.05);
+  /* Eye-Smoothing Native Tokens */
+  --color-bg-primary: #000000;
+  --color-bg-secondary: #0a0a0c;
+  --color-bg-card: #121214;
+  --color-bg-surface: #1c1c1e;
 
-  /* Shared Tokens */
-  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
-}
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #8e8e93;
+  --color-text-tertiary: #48484a;
 
-/* Dark Mode Overrides */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-bg-primary: #020617;
-    --color-bg-secondary: #0f172a;
-    --color-bg-card: #1e293b;
-    --color-text-primary: #f8fafc;
-    --color-text-secondary: #94a3b8;
-    --color-accent-blue: #3b82f6;
-    --color-accent-green: #34d399;
-    --color-accent-red: #f87171;
-    --color-border-subtle: #334155;
-    --color-shadow-subtle: rgba(0, 0, 0, 0.2);
-  }
+  --color-accent-blue: #0a84ff;
+  --color-accent-green: #30d158;
+  --color-accent-red: #ff453a;
+  --color-accent-amber: #ff9f0a;
+
+  --color-border-subtle: rgba(255, 255, 255, 0.08);
+  --color-shadow-native: rgba(0, 0, 0, 0.5);
+
+  --font-sans: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', system-ui, sans-serif;
 }
 
 @layer base {
   body {
-    background-color: var(--color-bg-secondary);
+    background-color: var(--color-bg-primary);
     color: var(--color-text-primary);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    /* Hide scrollbar for PWA feel */
+    overscroll-behavior-y: contain;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    /* Hide Scrollbar Global */
     scrollbar-width: none; 
     -ms-overflow-style: none;
   }
-  
-  body::-webkit-scrollbar { 
-    display: none; 
+
+  body::-webkit-scrollbar {
+    display: none;
   }
 }
 
 @layer utilities {
-  .premium-card {
+  .native-card {
     background-color: var(--color-bg-card);
-    border: 1px solid var(--color-border-subtle);
-    box-shadow: 0 4px 6px -1px var(--color-shadow-subtle), 0 2px 4px -2px var(--color-shadow-subtle);
-    border-radius: 1rem;
+    border-radius: 0.85rem;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-  
-  .premium-card:hover {
-    border-color: var(--color-accent-blue);
-    transform: translateY(-2px);
+    box-shadow: 0 4px 15px -2px var(--color-shadow-native);
+    border: 0.5px solid var(--color-border-subtle);
   }
 
-  .status-badge {
-    padding: 0.25rem 0.75rem;
-    border-radius: 9999px;
-    font-size: 0.75rem;
-    font-weight: 600;
+  .native-card:active {
+    transform: scale(0.98);
+  }
+
+  .glass-header {
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border-bottom: 0.5px solid var(--color-border-subtle);
+  }
+
+  .status-pill {
+    padding: 0.15rem 0.5rem;
+    border-radius: 0.5rem;
+    font-size: 0.6rem;
+    font-weight: 900;
     text-transform: uppercase;
-    letter-spacing: 0.025em;
+    letter-spacing: 0.08em;
   }
 
-  .no-scrollbar::-webkit-scrollbar {
-    display: none;
-  }
-  .no-scrollbar {
-    -ms-overflow-style: none;
+  /* Universal Scrollbar Hide */
+  * {
     scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  *::-webkit-scrollbar {
+    display: none;
   }
 }
