@@ -3,7 +3,7 @@
 import { useSession } from "next-auth/react";
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { format } from "date-fns";
-import { Loader2 } from "lucide-react";
+import { Loader } from "lucide-react";
 
 import DateStrip from "@/components/DateStrip";
 import RoomCard from "@/components/RoomCard";
@@ -146,7 +146,7 @@ export default function Home() {
   if (status === "loading") {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-bg-primary">
-        <Loader2 className="w-8 h-8 text-accent-blue animate-spin" />
+        <Loader className="w-8 h-8 text-accent-blue animate-spin" />
       </div>
     );
   }
@@ -228,7 +228,7 @@ export default function Home() {
 
           {loading ? (
             <div className="flex justify-center py-20">
-              <Loader2 className="w-8 h-8 text-accent-blue animate-spin opacity-40" />
+              <Loader className="w-8 h-8 text-accent-blue animate-spin opacity-40" />
             </div>
           ) : filteredRooms.length > 0 ? (
             <div className="grid grid-cols-2 gap-4">

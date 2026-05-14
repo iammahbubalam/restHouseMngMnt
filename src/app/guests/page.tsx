@@ -9,7 +9,7 @@ import {
   History, 
   ChevronRight, 
   X,
-  Loader2,
+  Loader,
   Clock,
   User
 } from 'lucide-react';
@@ -100,7 +100,7 @@ export default function StaffPage() {
           <div className="space-y-2.5">
             {loading ? (
               <div className="flex justify-center py-24">
-                <Loader2 className="animate-spin text-accent-blue opacity-50" size={32} />
+                <Loader className="animate-spin text-accent-blue opacity-50" size={32} />
               </div>
             ) : filteredStaff.length > 0 ? (
               filteredStaff.map((s) => (

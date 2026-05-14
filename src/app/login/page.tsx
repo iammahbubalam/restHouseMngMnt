@@ -3,7 +3,7 @@
 import { signIn } from 'next-auth/react';
 import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { LayoutDashboard, Lock, ShieldCheck, Loader2 } from 'lucide-react';
+import { LayoutDashboard, Lock, ShieldCheck, Loader } from 'lucide-react';
 
 function LoginForm() {
   const searchParams = useSearchParams();
@@ -79,7 +79,7 @@ export default function Login() {
   return (
     <Suspense fallback={
       <div className="min-h-screen flex items-center justify-center bg-bg-secondary">
-        <Loader2 className="w-8 h-8 text-accent-blue animate-spin" />
+        <Loader className="w-8 h-8 text-accent-blue animate-spin" />
       </div>
     }>
       <LoginForm />

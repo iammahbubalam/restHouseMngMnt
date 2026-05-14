@@ -7,7 +7,7 @@ import {
   Filter, 
   Calendar, 
   ChevronRight, 
-  Loader2,
+  Loader,
   Hash,
   X,
   User as UserIcon,
@@ -212,7 +212,7 @@ export default function BookingsPage() {
           <div className="space-y-2.5">
             {loading ? (
               <div className="flex justify-center py-24">
-                <Loader2 className="animate-spin text-accent-blue opacity-50" size={32} />
+                <Loader className="animate-spin text-accent-blue opacity-50" size={32} />
               </div>
             ) : bookings.length > 0 ? (
               bookings.map((b) => (

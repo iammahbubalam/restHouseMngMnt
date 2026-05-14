@@ -10,7 +10,7 @@ import {
   Calendar, 
   FileText,
   ChevronRight,
-  Loader2,
+  Loader,
   X
 } from 'lucide-react';
 import Navbar from "@/components/Navbar";
@@ -68,7 +68,7 @@ export default function ReportsPage() {
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-bg-primary">
-        <Loader2 className="w-8 h-8 text-accent-blue animate-spin" />
+        <Loader className="w-8 h-8 text-accent-blue animate-spin" />
       </div>
     );
   }
@@ -234,7 +234,7 @@ export default function ReportsPage() {
                 disabled={isExporting}
                 className="w-full py-4.5 bg-white text-black font-black text-[9px] uppercase tracking-[0.4em] rounded-xl shadow-2xl active:scale-95 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
               >
-                {isExporting ? <Loader2 className="animate-spin" size={16} /> : <Download size={16} />}
+                {isExporting ? <Loader className="animate-spin" size={16} /> : <Download size={16} />}
                 {isExporting ? 'GENERATING...' : 'DOWNLOAD AUDIT LOG'}
               </button>
             </div>
