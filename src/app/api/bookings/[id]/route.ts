@@ -18,10 +18,14 @@ export async function DELETE(
       return NextResponse.json({ error: 'Booking ID is required' }, { status: 400 });
     }
 
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'User ID missing from session' }, { status: 401 });
+    }
+
     // Only allow the user who booked it to delete it
     const result = await sql`
       DELETE FROM bookings
-      WHERE id = ${bookingId} AND booked_by = ${session.user.id}
+      WHERE id = ${bookingId ?? null} AND booked_by = ${session.user.id ?? null}
       RETURNING id
     `;
 
