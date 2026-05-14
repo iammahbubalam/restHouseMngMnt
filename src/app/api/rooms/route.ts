@@ -1,13 +1,11 @@
 import { NextResponse } from 'next/server';
 import { sql } from '@/lib/db';
-import { auth } from '@/lib/auth';
+import { checkAccess } from '@/lib/security';
 
 export async function GET(request: Request) {
   try {
-    const session = await auth();
-    if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const access = await checkAccess();
+    if (!access.authorized) return access.response;
 
     const { searchParams } = new URL(request.url);
     const date = searchParams.get('date');

@@ -3,7 +3,7 @@
 import { useSession } from "next-auth/react";
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { format } from "date-fns";
-import { Loader2, User } from "lucide-react";
+import { Loader2 } from "lucide-react";
 
 import DateStrip from "@/components/DateStrip";
 import RoomCard from "@/components/RoomCard";
@@ -47,11 +47,12 @@ export default function Home() {
   const [selectedBuildingId, setSelectedBuildingId] = useState<string | null>(null);
   const [buildingsData, setBuildingsData] = useState<Record<string, BuildingData>>({});
   const [loading, setLoading] = useState(true);
-  const [profileImgError, setProfileImgError] = useState(false);
 
   // --- MODAL STATES ---
   const [bookingModal, setBookingModal] = useState<{ isOpen: boolean; room: Room | null }>({ isOpen: false, room: null });
   const [confirmModal, setConfirmModal] = useState<{ isOpen: boolean; room: Room | null }>({ isOpen: false, room: null });
+
+  const [profileImgError, setProfileImgError] = useState(false);
 
   // --- DATA FETCHING ---
   const fetchData = useCallback(async (silent = false) => {
@@ -156,25 +157,26 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-bg-primary pb-32">
+    <div className="min-h-screen bg-bg-primary pb-44">
       {/* COMPACT SCROLLING HEADER */}
-      <header className="relative px-6 pt-10 pb-4">
+      <header className="relative px-6 pt-12 pb-4">
         <div className="max-w-screen-xl mx-auto flex justify-between items-end">
-          <div>
-            <p className="text-[8px] font-black uppercase tracking-[0.3em] text-text-secondary opacity-30 mb-0.5">Rest House</p>
-            <h1 className="text-2xl font-black text-white tracking-tighter uppercase">Home</h1>
+          <div className="animate-in slide-in-from-left duration-700">
+            <p className="text-[10px] font-black uppercase tracking-[0.4em] text-accent-blue mb-1.5">DASHBOARD</p>
+            <h1 className="text-4xl font-black text-white tracking-tighter uppercase leading-none">Home</h1>
           </div>
-          <div className="h-10 w-10 rounded-xl overflow-hidden bg-white/5 border border-white/5 shadow-lg active:scale-95 transition-transform flex items-center justify-center group">
+          <div className="h-11 w-11 rounded-xl overflow-hidden bg-bg-card border border-white/10 shadow-2xl active:scale-90 transition-all flex items-center justify-center group animate-in slide-in-from-right duration-700">
             {session?.user?.image && !profileImgError ? (
               <img 
                 src={session.user.image} 
                 alt="Profile" 
-                className="h-full w-full object-cover"
+                referrerPolicy="no-referrer"
+                className="h-full w-full object-cover transition-all"
                 onError={() => setProfileImgError(true)}
               />
             ) : (
-              <div className="text-text-secondary group-active:text-white transition-colors">
-                <User size={20} />
+              <div className="h-full w-full flex items-center justify-center text-[12px] font-black text-white bg-accent-blue/30 border border-accent-blue/20">
+                {session?.user?.name?.charAt(0) || 'A'}
               </div>
             )}
           </div>
@@ -183,16 +185,16 @@ export default function Home() {
 
       <main className="max-w-screen-xl mx-auto px-6 py-8 space-y-12">
         {/* DATE STRIP */}
-        <section>
+        <section className="animate-in fade-in slide-in-from-bottom duration-700 delay-100">
           <DateStrip selectedDate={selectedDate} onSelectDate={setSelectedDate} />
         </section>
 
         {/* BUILDINGS */}
-        <section className="space-y-6">
-          <div className="flex items-center justify-between">
+        <section className="space-y-6 animate-in fade-in slide-in-from-bottom duration-700 delay-200">
+          <div className="flex items-center justify-between px-1">
             <h2 className="text-2xl font-black text-white tracking-tight uppercase">Buildings</h2>
-            <div className="bg-bg-card px-3 py-1 rounded-full text-[10px] font-black text-text-secondary uppercase tracking-widest border border-white/5">
-              {buildings.length} Total
+            <div className="bg-bg-card px-4 py-2 rounded-full text-[10px] font-black text-white uppercase tracking-[0.2em] border border-white/10 shadow-lg">
+              {buildings.length} UNITS
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
@@ -211,22 +213,22 @@ export default function Home() {
         </section>
 
         {/* ROOMS */}
-        <section className="space-y-6">
-          <div className="flex items-center justify-between">
+        <section className="space-y-6 animate-in fade-in slide-in-from-bottom duration-700 delay-300">
+          <div className="flex items-center justify-between px-1">
             <div>
-              <p className="text-[8px] font-black uppercase tracking-[0.2em] text-accent-blue mb-1">
-                DATE: {format(selectedDate, 'dd-MM-yyyy')}
+              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-accent-blue mb-2">
+                DATE: {format(selectedDate, 'dd MM yyyy')}
               </p>
               <h2 className="text-2xl font-black text-white tracking-tight uppercase">Rooms</h2>
             </div>
-            <div className="bg-bg-card px-3 py-1 rounded-full text-[10px] font-black text-text-secondary uppercase tracking-widest border border-white/5">
-              {filteredRooms.length} Units
+            <div className="bg-bg-card px-4 py-2 rounded-full text-[10px] font-black text-white uppercase tracking-[0.2em] border border-white/10 shadow-lg">
+              {filteredRooms.length} STATUS
             </div>
           </div>
 
           {loading ? (
             <div className="flex justify-center py-20">
-              <Loader2 className="w-6 h-6 text-accent-blue animate-spin" />
+              <Loader2 className="w-8 h-8 text-accent-blue animate-spin opacity-40" />
             </div>
           ) : filteredRooms.length > 0 ? (
             <div className="grid grid-cols-2 gap-4">
@@ -241,8 +243,8 @@ export default function Home() {
               ))}
             </div>
           ) : (
-            <div className="text-center py-20 bg-bg-card/20 rounded-xl border border-dashed border-white/5">
-              <p className="text-text-secondary text-[8px] font-black uppercase tracking-widest">No Rooms Available</p>
+            <div className="text-center py-24 bg-bg-card/20 rounded-3xl border border-dashed border-white/10">
+              <p className="text-white text-[10px] font-black uppercase tracking-[0.3em] opacity-60">No Units Selected</p>
             </div>
           )}
         </section>
@@ -259,8 +261,8 @@ export default function Home() {
       <ConfirmModal 
         isOpen={confirmModal.isOpen}
         title="Cancel Booking"
-        message={`Confirm cancellation for Room ${confirmModal.room?.roomNumber}? This action is irreversible.`}
-        confirmLabel="Cancel Booking"
+        message={`Confirm termination of booking for Room ${confirmModal.room?.roomNumber}? This record will be permanently deleted.`}
+        confirmLabel="Terminate Booking"
         isDestructive={true}
         onClose={() => setConfirmModal({ isOpen: false, room: null })}
         onConfirm={handleCancel}

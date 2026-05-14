@@ -3,7 +3,7 @@
 import { signIn } from 'next-auth/react';
 import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { LayoutDashboard, Lock, ShieldCheck } from 'lucide-react';
+import { LayoutDashboard, Lock, ShieldCheck, Loader2 } from 'lucide-react';
 
 function LoginForm() {
   const searchParams = useSearchParams();

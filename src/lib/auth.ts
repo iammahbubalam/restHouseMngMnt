@@ -58,48 +58,55 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return ALLOWED_EMAILS.includes(user.email?.toLowerCase() ?? '');
     },
     async jwt({ token, account, profile }) {
-      if (account) {
-        // First login: save tokens + upsert user in DB
+      // 1. Handle Initial Sign In
+      if (account && profile) {
         token.accessToken = account.access_token;
         token.refreshToken = account.refresh_token;
         token.accessTokenExpires = Date.now() + (account.expires_at! * 1000);
+        token.picture = profile.picture; // Google picture
 
-        // Upsert user into Neon
+        // Upsert user into DB using avatar_url column
         const users = await sql`
           INSERT INTO users (email, name, avatar_url)
-          VALUES (${profile?.email}, ${profile?.name}, ${profile?.picture})
+          VALUES (${profile.email ?? null}, ${profile.name ?? null}, ${profile.picture ?? null})
           ON CONFLICT (email) DO UPDATE SET
             name = EXCLUDED.name,
             avatar_url = EXCLUDED.avatar_url,
             updated_at = NOW()
-          RETURNING id
+          RETURNING id, avatar_url
         `;
         
         token.dbId = users[0].id;
+        token.picture = users[0].avatar_url; // Use DB value
       }
 
-      // If we don't have a dbId on the token yet, try to fetch it
-      if (!token.dbId && token.email) {
-          const users = await sql`SELECT id FROM users WHERE email = ${token.email}`;
+      // 2. Continuous Synchronization (ensure picture is always in token)
+      if (!token.picture && token.email) {
+          const users = await sql`SELECT id, avatar_url FROM users WHERE email = ${token.email}`;
           if (users.length > 0) {
               token.dbId = users[0].id;
+              token.picture = users[0].avatar_url;
           }
       }
 
-      // Refresh token if expired
+      // 3. Handle Token Refresh
       if (Date.now() < (token.accessTokenExpires as number)) {
         return token;
       }
       return await refreshAccessToken(token);
     },
     async session({ session, token }) {
-      // Attach the DB ID to the session user so it's easily accessible in the app
-      session.user.id = (token.dbId as string) || token.sub!;
+      // 4. Map Token Data to Session User
+      if (session.user) {
+        session.user.id = (token.dbId as string) || token.sub!;
+        // Force the DB picture (avatar_url) into the session image property
+        session.user.image = (token.picture as string) || (session.user.image as string);
+      }
       return session;
     },
   },
   pages: {
     signIn: '/login',
-    error: '/login', // Error code passed in query string as ?error=
+    error: '/login',
   }
 });
