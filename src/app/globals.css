@@ -1,76 +1,100 @@
 @import "tailwindcss";
 
-@theme {
-  /* High-Contrast Native Tokens */
-  --color-bg-primary: #000000;
-  --color-bg-secondary: #080808;
-  --color-bg-card: #141416;
-  --color-bg-surface: #1e1e20;
+:root {
+  /* DARK MODE: DEEP ARCHITECTURAL (DEFAULT) */
+  --bg-primary: #000000;
+  --bg-secondary: #0a0a0a;
+  --bg-card: #141416;
+  --bg-surface: #1e1e20;
 
-  --color-text-primary: #ffffff;
-  --color-text-secondary: #a1a1aa; /* Brighter Gray */
-  --color-text-tertiary: #71717a;  /* Visible Gray */
+  --text-primary: #ffffff;
+  --text-secondary: #a1a1aa;
+  --text-tertiary: #71717a;
 
-  --color-accent-blue: #3b82f6;
-  --color-accent-green: #22c55e;
-  --color-accent-red: #ef4444;
-  --color-accent-amber: #f59e0b;
+  --accent-blue: #3b82f6;
+  --accent-green: #22c55e;
+  --accent-red: #ef4444;
+  --accent-amber: #f59e0b;
 
-  --color-border-subtle: rgba(255, 255, 255, 0.12); /* Sharper */
-  --color-shadow-native: rgba(0, 0, 0, 0.8);
+  --border-subtle: rgba(255, 255, 255, 0.1);
+  --shadow-native: rgba(0, 0, 0, 0.9);
+}
 
-  --font-sans: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', system-ui, sans-serif;
+[data-theme='light'] {
+  /* LIGHT MODE: PORCELAIN MINT (PREMIUM EXECUTIVE) */
+  --bg-primary: #f8faf9;
+  --bg-secondary: #ffffff;
+  --bg-card: #ffffff;
+  --bg-surface: #f0fdf4;
+
+  --text-primary: #022c22;
+  --text-secondary: #064e3b;
+  --text-tertiary: #10b981;
+
+  --accent-blue: #2563eb;
+  --accent-green: #059669;
+  --accent-red: #e11d48;
+  --accent-amber: #d97706;
+
+  --border-subtle: rgba(6, 95, 70, 0.05);
+  --shadow-native: rgba(0, 0, 0, 0.03);
 }
 
 @layer base {
   body {
-    background-color: var(--color-bg-primary);
-    color: var(--color-text-primary);
-    font-family: var(--font-sans);
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     overscroll-behavior-y: contain;
     user-select: none;
     -webkit-tap-highlight-color: transparent;
-    scrollbar-width: none; 
-    -ms-overflow-style: none;
-  }
-
-  body::-webkit-scrollbar {
-    display: none;
+    transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1), color 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   }
 }
 
 @layer utilities {
+  .bg-bg-primary { background-color: var(--bg-primary); }
+  .bg-bg-card { background-color: var(--bg-card); }
+  .bg-bg-surface { background-color: var(--bg-surface); }
+  
+  .text-text-primary { color: var(--text-primary); }
+  .text-text-secondary { color: var(--text-secondary); }
+  .text-accent-blue { color: var(--accent-blue); }
+  .text-accent-green { color: var(--accent-green); }
+  .text-accent-red { color: var(--accent-red); }
+
+  .border-white\/10 { border-color: var(--border-subtle); }
+
   .native-card {
-    background-color: var(--color-bg-card);
-    border-radius: 1rem; /* Slightly rounder for premium feel */
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 8px 32px -4px var(--color-shadow-native);
-    border: 1px solid var(--color-border-subtle); /* Thicker for separation */
+    background-color: var(--bg-card);
+    border-radius: 1.25rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 10px 40px -6px var(--shadow-native);
+    border: 1px solid var(--border-subtle);
   }
 
   .native-card:active {
-    transform: scale(0.98);
-    background-color: var(--color-bg-surface);
+    transform: scale(0.97);
+    background-color: var(--bg-surface);
   }
 
   .glass-header {
-    background: rgba(0, 0, 0, 0.9);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border-bottom: 1px solid var(--color-border-subtle);
+    background: var(--bg-primary);
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
+    border-bottom: 1px solid var(--border-subtle);
   }
 
   .status-pill {
-    padding: 0.25rem 0.6rem;
-    border-radius: 0.5rem;
-    font-size: 0.65rem;
+    padding: 0.3rem 0.75rem;
+    border-radius: 0.75rem;
+    font-size: 0.6rem;
     font-weight: 900;
     text-transform: uppercase;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.15em;
   }
 
-  /* Universal Scrollbar Hide */
   * {
     scrollbar-width: none;
     -ms-overflow-style: none;
