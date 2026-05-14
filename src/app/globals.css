@@ -1,26 +1,65 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  --color-bg-primary: #0a0a0f;
+  --color-bg-card: #14141f;
+  --color-bg-glass: rgba(255, 255, 255, 0.04);
+  --color-accent-green: #34d399;
+  --color-accent-green-dim: rgba(52, 211, 153, 0.1);
+  --color-accent-red: #f87171;
+  --color-accent-red-dim: rgba(248, 113, 113, 0.1);
+  --color-accent-amber: #fbbf24;
+  --color-accent-amber-dim: rgba(251, 191, 36, 0.1);
+  --color-text-primary: #f1f5f9;
+  --color-text-secondary: #94a3b8;
+  --color-border-subtle: rgba(255, 255, 255, 0.08);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  body {
+    background-color: var(--color-bg-primary);
+    color: var(--color-text-primary);
+    font-family: Arial, Helvetica, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    /* Hide scrollbar for PWA feel */
+    scrollbar-width: none; 
+    -ms-overflow-style: none;
+  }
+  
+  body::-webkit-scrollbar { 
+    display: none; 
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer utilities {
+  .glass-card {
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border-subtle);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+  
+  .room-available {
+    border-color: var(--color-accent-green-dim);
+    background: linear-gradient(145deg, var(--color-bg-card), var(--color-accent-green-dim));
+  }
+  
+  .room-booked {
+    border-color: var(--color-accent-red-dim);
+    background: linear-gradient(145deg, var(--color-bg-card), var(--color-accent-red-dim));
+  }
+
+  .room-booked-self {
+    border-color: var(--color-accent-amber-dim);
+    background: linear-gradient(145deg, var(--color-bg-card), var(--color-accent-amber-dim));
+  }
+  
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
 }

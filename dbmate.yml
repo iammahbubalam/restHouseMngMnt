@@ -1,0 +1,2 @@
+schema: "./db/schema.sql"
+migrations-dir: "./db/migrations"
